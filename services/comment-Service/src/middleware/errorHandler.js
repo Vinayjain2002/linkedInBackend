@@ -1,10 +1,21 @@
-const express = require('express');
-const router = express.Router();
-const auth = require('../middlewares/auth');
-const commentController = require('../controllers/commentController');
+const errorHandler= (err, req, res, next)=>{
+    console.log(err.stack);
 
-router.post('/', auth, commentController.createComment);
-router.get('/:postId', commentController.getComments);
-router.delete('/:commentId', auth, commentController.deleteComment);
+    if(err instanceof Joi.ValidationError){
+        return res.status(400).json({
+            error: err.message
+        });
+    }
 
-module.exports = router;
+    if(err instanceof jwt.JsonWebTokenError){
+        return res.status(403).json({
+            error: 'Invalid Token'
+        });
+    }
+
+    return res.status(500).json({
+        error: 'Internal Server Error'
+    });
+}
+
+module.exports= errorHandler;
