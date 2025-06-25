@@ -18,7 +18,6 @@ const getJobById= async(id)=>{
       if(!id){
         throw new Error("Missing Field Required");
       }
-
       const result= await pool.query(
         `SELECT * FROM jobs WHERE id = $1 AND is_active = true LIMIT 1`,
         [id]

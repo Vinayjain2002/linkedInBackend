@@ -11,7 +11,6 @@ const gracefulShutdown= async ()=>{
         console.log("Postgree Pool disconnected");
         await redisClient.quit();
         console.log("Redis Client disconnected");
-        process.exit(0);
     }catch(error){
         console.error('Error during shutdown:', error);
     }

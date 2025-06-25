@@ -7,7 +7,7 @@ const createPost= async(req, res)=>{
     try{
         const {error, value}= postSchema.validate(req.body);
         if(error){
-            return res.status(41).json({error: error.details[0].message});
+            return res.status(401).json({error: error.details[0].message});
         }
         const { content, media_urls, media_type, visibility } = value;
         const result= await pool.query(

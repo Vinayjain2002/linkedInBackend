@@ -5,11 +5,10 @@ const cors= require('cors');
 const dotenv= require('dotenv');
 const helmet= require('helmet');
 const morgan= require('morgan');
-const {createTables}= require('./database/migrate.js');
+// const {createTables}= require('./database/migrate.js');
 
 dotenv.config();
 const app= express();
-createTables();
 
 app.use(express.json());
 app.use(cors({

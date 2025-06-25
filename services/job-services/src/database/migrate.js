@@ -25,10 +25,7 @@ async function migrate(){
     );`);
 
     console.log('Database migrated successfully');
-    process.exit(0);
 };
 
-migrate().catch(err=>{
-    console.error(err);
-    process.exit(1);
-});
+
+module.exports= {migrate};
