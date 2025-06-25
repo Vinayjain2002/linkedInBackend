@@ -7,6 +7,7 @@ sequelize.sync().then(()=>{
 }).catch((err)=>{
     console.error('Error syncing database:', err);
 });
+
 // Graceful Shutdown
 const gracefulShutdown= async ()=>{
     console.log('Shutting down gracefully...');

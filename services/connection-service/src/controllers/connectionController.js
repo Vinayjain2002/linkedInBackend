@@ -13,8 +13,6 @@ exports.sendRequest = async (req, res, next) => {
     if (requesterId === addresseeId) {
       return res.status(400).json({ error: "Cannot connect to yourself" });
     }
-
-    // Prevent duplicate requests
     const existing = await Connection.findOne({
       where: { requesterId, addresseeId }
     });
@@ -27,7 +25,6 @@ exports.sendRequest = async (req, res, next) => {
   }
 };
 
-// Accept a connection request
 exports.acceptRequest = async (req, res, next) => {
   try {
     const { connectionId } = req.params;
@@ -43,8 +40,6 @@ exports.acceptRequest = async (req, res, next) => {
     if (connection.status === 'accepted') {
       return res.status(400).json({ error: "Request has already been accepted" });
     }
-
-    // Only allow if current status is 'pending'
     if (connection.status !== 'pending') {
       return res.status(400).json({ error: "Invalid request state" });
     }
@@ -56,7 +51,6 @@ exports.acceptRequest = async (req, res, next) => {
   }
 };
 
-// Reject a connection request
 exports.rejectRequest = async (req, res, next) => {
   try {
     const { connectionId } = req.params;
@@ -85,7 +79,6 @@ exports.rejectRequest = async (req, res, next) => {
   }
 };
 
-// List all connections for a user
 exports.listConnections = async (req, res, next) => {
   try {
     const userId = req.user.id;

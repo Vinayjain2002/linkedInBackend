@@ -13,7 +13,7 @@ module.exports = (req, res, next) => {
         return res.status(403).json({"error": 'Invalid or inactive User'});
     }
 
-    req.user= user.rows[0];
+    req.user= decoded;
     next();
   } catch (err) {
      if(err.name== 'TokenExpiredError'){
