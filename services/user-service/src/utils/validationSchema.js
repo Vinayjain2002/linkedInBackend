@@ -1,4 +1,3 @@
-// left
 const Joi = require('joi');
 
 const userRegistrationSchema = Joi.object({

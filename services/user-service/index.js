@@ -1,4 +1,5 @@
 const dotenv= require('dotenv');
+const migrate= require('./src/database/migrate.js');
 const app= require('./src/app.js');
 const pool= require('./src/config/database.js');
 const redisClient= require('./src/config/redis.js');
@@ -9,7 +10,6 @@ const PORT= process.env.PORT || 3001;
 const gracefulShutdown= async ()=>{
     console.log('Shutting down gracefully...');
     try{
-        await pool.end();
         console.log("Postgree Pool disconnected");
         await redisClient.quit();
         console.log("Redis Client disconnected");

@@ -1,8 +1,11 @@
 const app= require('./src/app.js');
+const {pool, connectDatabase}= require('./src/config/db.js');
 const {connectRabbitMQ}= require('./src/config/rabbitmq.js');
-
+const {connectRedis}= require('./src/config/redis.js');
 const PORT= process.env.PORT || 3002;
 
+connectDatabase();
+connectRedis();
 connectRabbitMQ().then(()=>{
     app.listen(PORT, ()=>{
         console.log(`Post Service running on port ${PORT}`);

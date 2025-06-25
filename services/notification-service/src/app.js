@@ -21,6 +21,7 @@ const io= socket(server, {
 app.use(cors({
     origin: process.env.FRONTEND_URL,
 }));
+
 app.use(helmet());
 app.use(morgan('combined'));
 app.use(express.json());

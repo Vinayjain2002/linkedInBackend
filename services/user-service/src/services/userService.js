@@ -1,4 +1,3 @@
-// Left 
 
 const UserModel = require('../models/userModel');
 const redisClient = require('../config/redis');
@@ -46,9 +45,7 @@ const userService = {
     },
 
     async uploadUserProfilePicture(userId) {
-        // In a real application, integrate with an external storage service (e.g., AWS S3, Google Cloud Storage)
-        // For demonstration, a placeholder URL is generated.
-        const pictureUrl = `https://example.com/profile-pictures/${userId}-${Date.now()}.jpg`;
+      const pictureUrl = `https://example.com/profile-pictures/${userId}-${Date.now()}.jpg`;
 
         const updatedPictureUrl = await UserModel.updateProfilePicture(userId, pictureUrl);
         await redisClient.del(`user:${userId}`); // Clear cache for updated profile

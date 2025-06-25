@@ -37,6 +37,19 @@ const authController= {
                 return res.status(400).json({error: error.details[0].message});
             }
             const { email, password } = value;
+            const isBlocked= await userModel.isUserBlocked(email);
+            if(isBlocked){
+                return res.status(403).json({error: 'Account is blocked. Please try again later.'});
+            }
+            const lastFailedLogin= await userModel.getLastFailedLogin(email);
+            if(lastFailedLogin){
+                const timeDiff= new Date() - new Date(lastFailedLogin);
+                const minutes= Math.floor(timeDiff / (1000 * 60));
+                if(minutes < 30){
+                    return res.status(403).json({error: 'Account is blocked. Please try again later.'});
+                }
+                await userModel.resetFailedLogin(email);
+            }
             const { user, token } = await authService.loginUser(email, password);
             return res.status(200).json({
                 message: 'Login successful',

@@ -7,7 +7,7 @@ const createPost= async(req, res)=>{
     try{
         const {error, value}= postSchema.validate(req.body);
         if(error){
-            return res.status(400).json({error: error.details[0].message});
+            return res.status(41).json({error: error.details[0].message});
         }
         const { content, media_urls, media_type, visibility } = value;
         const result= await pool.query(
@@ -16,6 +16,7 @@ const createPost= async(req, res)=>{
             [req.user.id, content, media_urls || [], media_type, visibility]
         );
         const post= result.rows[0];
+      
         const channel= await getChannel();
         if(channel){
             channel.sendToQueue('post_created', Buffer.from(JSON.stringify({
@@ -25,6 +26,7 @@ const createPost= async(req, res)=>{
                 visibility: post.visibility
             })));
         }
+        // Deleting the Global Feed Cache as new post is created
         const keys = await redisClient.keys('feed:global:*');
         if(keys.length > 0) {
             await redisClient.del(...keys);

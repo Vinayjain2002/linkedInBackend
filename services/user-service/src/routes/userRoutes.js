@@ -6,9 +6,9 @@ const upload= require('../middleware/upload.js');
 
 router.get('/profile', authenticateToken, userController.getUserById);
 router.put('/profile', authenticateToken, userController.updateExistingProfile);
-router.post('/profile/picture', authenticateToken, upload.single('picture'), userController.updateExistingProfile);
+router.post('/profile/picture', authenticateToken, upload.single('picture'),userController.uploadUserProfilePicture);
 router.delete('/account', authenticateToken, userController.deleteUserAccount);
 router.get('/search', authenticateToken, userController.searchUsers);
-router.get('/:id', authenticateToken, userController.getUserById); // Get user by ID for other services
+router.get('/:id', authenticateToken, userController.getUserById); 
 
 module.exports= router;

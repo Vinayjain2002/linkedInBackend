@@ -92,8 +92,31 @@ const userModel= {
             [searchTerm, limit, offset]
         );
         return result.rows;
+    },
+    async recordFailedLogin(email){
+        const user = await pool.query('SELECT failed_login_attempts FROM users WHERE email = $1', [email]);
+        if (!user.rows[0]) return;
+        const attempts = user.rows[0].failed_login_attempts + 1;
+        let isBlocked = false;
+        if (attempts >= 5) isBlocked = true;
+        await pool.query(
+            'UPDATE users SET failed_login_attempts = $1, is_blocked = $2, last_failed_login = NOW() WHERE email = $3',
+            [attempts, isBlocked, email]
+        );
+    },
+    async  resetFailedLogin(email) {
+        if(!email){
+            return;
+        }
+        await pool.query(
+            'UPDATE users SET failed_login_attempts = 0, is_blocked = false WHERE email = $1',
+            [email]
+        );
+    },
+    async isUserBlocked(email) {
+        const result = await pool.query('SELECT is_blocked FROM users WHERE email = $1', [email]);
+        return result.rows[0]?.is_blocked;
     }
-
 }
 
 module.exports= userModel;

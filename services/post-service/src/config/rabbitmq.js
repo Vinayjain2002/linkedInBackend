@@ -1,10 +1,12 @@
 const amqp= require('amqplib');
+const dotenv= require('dotenv');
+dotenv.config();
 
 let channel;
 
 const connectRabbitMQ= async()=>{
     try{
-        const connection= await amqp.connect(process.env.RABBITMQ_URI);
+        const connection= await amqp.connect(process.env.RABBITMQ_URL);
         channel= await connection.createChannel();
         console.log('Connected to RabbitMQ');
     }

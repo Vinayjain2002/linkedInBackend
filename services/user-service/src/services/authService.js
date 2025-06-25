@@ -16,7 +16,7 @@ const authService= {
         const user = await UserModel.createUser(email, passwordHash, first_name, last_name, headline, location, industry, phone);
         const token = jwt.sign(
             { id: user.id, email: user.email },
-            process.env.JWT_SECRET || 'fallback-secret',
+            process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
         await redisClient.setEx(`user:${user.id}`, 3600, JSON.stringify(user));
@@ -51,8 +51,10 @@ const authService= {
         }
         const isPasswordValid= await bcrypt.compare(password, user.password_hash);
         if(!isPasswordValid){
+            await UserModel.recordFailedLogin(email);
             throw new Error('Invalid password');
         }
+        await UserModel.resetFailedLogin(email);
         const token = jwt.sign(
             { id: user.id, email: user.email },
             process.env.JWT_SECRET || 'fallback-secret',
@@ -64,16 +66,16 @@ const authService= {
 
     async requestPasswordReset(email){
         const user= await UserModel.findUserByEmail(email);
-        if(!user){
-            throw new Error('User not found');
+        if(!user ||!user.email_verified || !user.is_verified){
+            throw new Error('User not found or not verified');
         }
         const resetToken= jwt.sign(
             { id: user.id, type: 'password-reset' },
-            process.env.JWT_SECRET || 'fallback-secret',
+            process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
         const expiresAt= new Date(Date.now() + 3600000);
-        await UserModel.storePasswordResetToken(user.id, resetToken, 'password-reset', expiresAt);
+        await UserModel.storeVerificationToken(user.id, resetToken, 'password-reset', expiresAt);
         try{
             const resetLink= `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
             await transporter.sendMail({
@@ -98,7 +100,7 @@ const authService= {
     },
 
     async resetUserPassword(token, newPassword){
-        const decoded= jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret');
+        const decoded= jwt.verify(token, process.env.JWT_SECRET);
         if(decoded.type !== 'password-reset'){
             throw new Error('Invalid or expired token');
         }
