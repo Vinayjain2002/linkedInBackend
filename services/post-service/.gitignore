@@ -6,6 +6,8 @@ node_modules/
 .npm/
 package-lock.json
 
+package-lock.json
+
 # Logs
 logs
 *.log
@@ -62,3 +64,4 @@ pids/
 
 # Prisma or other ORMs
 .prisma/
+git reset

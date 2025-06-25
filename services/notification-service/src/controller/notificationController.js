@@ -1,4 +1,5 @@
 const NotificationModel = require('../models/notificationModel.js');
+const NotificationSettingsModel = require('../models/notificationSettingModel.js');
 const NotificationService = require('../services/notificationService.js');
 const NotificationSettingsModel = require('../models/notificationSettingModel.js');
 

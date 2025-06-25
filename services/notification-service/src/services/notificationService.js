@@ -4,6 +4,7 @@ const EmailService = require('./emailService.js');
 const { channel } = require('../config/rabbitmq.js');
 
 class NotificationService {
+    
     static async createNotification(notificationData) {
         try {
             const notification = await NotificationModel.create(notificationData);
@@ -19,7 +20,6 @@ class NotificationService {
             if (settings?.push_enabled) {
                 await this.queuePushNotification(notification);
             }
-
             return notification;
         } catch (error) {
             console.error('Error creating notification:', error);
@@ -39,6 +39,8 @@ class NotificationService {
 
     static async queueEmailNotification(notification) {
         try {
+            console.log('Queuing email notification for user:', notification.user_id);
+            console.log('Notification data:', notification);
             await channel.sendToQueue('email_notifications', Buffer.from(JSON.stringify(notification)));
             console.log('Email notification queued for user:', notification.user_id);
         } catch (error) {
@@ -48,6 +50,8 @@ class NotificationService {
 
     static async queuePushNotification(notification) {
         try {
+            console.log('Queuing push notification for user:', notification.user_id);
+            console.log('Notification data:', notification);
             await channel.sendToQueue('push_notifications', Buffer.from(JSON.stringify(notification)));
             console.log('Push notification queued for user:', notification.user_id);
         } catch (error) {

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const NotificationController = require('../controller/notificationController.js');
+const NotificationController = require("../controller/notificationController.js");
 const auth = require('../middlewares/auth.js');
 const { validateNotification, validateSettings } = require('../utils/validationSchema.js');
 

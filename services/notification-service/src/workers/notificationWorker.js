@@ -15,9 +15,9 @@ const processEmailNotifications = async () => {
                 
                 if (userEmail) {
                     await emailService.sendNotificationEmail(notification, userEmail);
+                    channel.ack(msg);
                 }
                 
-                channel.ack(msg);
             }
         });
         
