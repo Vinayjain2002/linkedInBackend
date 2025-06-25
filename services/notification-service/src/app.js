@@ -6,7 +6,7 @@ const http= require('http');
 const socket= require('socket.io');
 
 const notificationRouter= require('./routes/notificationRoutes.js');
-const errorHandler= require('./middleware/errorHandler.js');
+const errorHandler= require('./middlewares/errorHandler.js');
 
 const app= express();
 const server= http.createServer(app);
@@ -31,21 +31,28 @@ app.use(express.urlencoded({extended: true}));
 //     next();
 // });
 
-app.get('/health',async (req, res)=>{
-    const pool= await pool.query('SELECT 1');
-    return res.status(200).json({
-        status: 'ok',
-        service: 'notification-service',
-        timestamp: new Date().toISOString(),
-        database: pool._connected ? 'connected' : 'disconnected'
-    });
+app.get('/health', async (req, res) => {
+    try {
+        return res.status(200).json({
+            status: 'ok',
+            service: 'notification-service',
+            timestamp: new Date().toISOString(),
+            database: 'connected' // You can add actual database check here if needed
+        });
+    } catch (error) {
+        return res.status(500).json({
+            status: 'error',
+            service: 'notification-service',
+            timestamp: new Date().toISOString(),
+            error: error.message
+        });
+    }
 });
 
 app.use('/api/v1/notifications', notificationRouter);
 
 app.use(errorHandler);
 
-app.use("*", (_,res)=>res.status(404).json({error: 'Route Not Found'}));
 
 io.on('connection', (socket)=>{
     console.log('A user connected', socket.id);

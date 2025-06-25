@@ -1,15 +1,32 @@
 const {Pool} = require('pg');
+const dotenv= require('dotenv');
+
+dotenv.config();
 
 const pool = new Pool({
-    user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || 'localhost',
-    database: process.env.DB_NAME || 'linkedin_notifications',
-    password: process.env.DB_PASSWORD || 'password',
-    port: process.env.DB_PORT || 5432,
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionString: process.env.DATABASE_URL
 });
+
+async function testDBConnection(){
+    let client;
+    try{
+        client= await pool.connect();
+        console.log('Connected to the Database');
+
+        const res= await client.query('SELECT NOW()');
+        console.log('Database is running', res.rows[0].now);
+    }
+    catch(err){
+        throw err;
+    }
+    finally{
+        if(client){
+            client.release();
+            console.log('Client Released back to Pool');
+        }
+    }
+}
+testDBConnection();
 
 const connectDatabase= async ()=>{
     try{

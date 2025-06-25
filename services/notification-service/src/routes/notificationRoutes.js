@@ -1,34 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const NotificationController = require('../controllers/notificationController.js');
+const NotificationController = require('../controller/notificationController.js');
 const auth = require('../middlewares/auth.js');
 const { validateNotification, validateSettings } = require('../utils/validationSchema.js');
 
-// Apply auth middleware to all routes
-router.use(auth);
 
-// Get user notifications
-router.get('/', NotificationController.getNotifications);
-
-// Get unread notifications
-router.get('/unread', NotificationController.getUnreadNotifications);
-
-// Mark notification as read
-router.patch('/:notificationId/read', NotificationController.markAsRead);
-
-// Mark all notifications as read
-router.patch('/read-all', NotificationController.markAllAsRead);
-
-// Delete notification
-router.delete('/:notificationId', NotificationController.deleteNotification);
-
-// Get notification settings
-router.get('/settings', NotificationController.getSettings);
-
-// Update notification settings
-router.put('/settings', validateSettings, NotificationController.updateSettings);
-
-// Create notification (for internal use)
-router.post('/', validateNotification, NotificationController.createNotification);
+router.get('/', auth, NotificationController.getNotifications);
+router.get('/unread', auth, NotificationController.getUnreadNotifications);
+router.get('/settings', auth, NotificationController.getSettings);
+router.put('/settings', auth, validateSettings, NotificationController.updateSettings);
+router.patch('/read-all', auth, NotificationController.markAllAsRead);
+router.post('/', auth, validateNotification, NotificationController.createNotification);
+router.patch('/:notificationId/read', auth, NotificationController.markAsRead);
+router.delete('/:notificationId', auth, NotificationController.deleteNotification);
 
 module.exports = router;

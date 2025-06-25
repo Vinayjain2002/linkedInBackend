@@ -1,31 +1,21 @@
 const NotificationModel = require('../models/notificationModel.js');
-const NotificationSettingsModel = require('../models/notificationSettingsModel.js');
+const NotificationSettingsModel = require('../models/notificationSettingModel.js');
 const EmailService = require('./emailService.js');
 const { channel } = require('../config/rabbitmq.js');
 
 class NotificationService {
     static async createNotification(notificationData) {
         try {
-            // Create notification in database
             const notification = await NotificationModel.create(notificationData);
-
-            // Check user notification settings
             const settings = await NotificationSettingsModel.findByUserId(notificationData.user_id);
             
             if (!settings) {
-                // Create default settings if not exists
                 await NotificationSettingsModel.create(notificationData.user_id);
             }
-
-            // Send real-time notification
             await this.sendRealTimeNotification(notification);
-
-            // Queue email notification if enabled
             if (settings?.email_enabled) {
                 await this.queueEmailNotification(notification);
             }
-
-            // Queue push notification if enabled
             if (settings?.push_enabled) {
                 await this.queuePushNotification(notification);
             }
