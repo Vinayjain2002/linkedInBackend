@@ -11,7 +11,7 @@ async function testDBConnection(){
   let client;
   try{
     client= await pool.connect();
-    console.log("Connected to the Database");
+    console.log("Database connection Tested Successfully");
 
     const res= await client.query('SELECT NOW()');
     console.log("Database is running", res.rows[0].now);

@@ -97,15 +97,5 @@ const createTables = async () => {
   }
 };
 
-// Run migration
-createTables()
-  .then(() => {
-    console.log('Migration completed successfully');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('Migration failed:', error);
-    process.exit(1);
-  });
 
 module.exports= {createTables};

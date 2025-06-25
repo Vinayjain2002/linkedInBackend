@@ -9,6 +9,7 @@ const {createTables}= require('./database/migrate.js');
 
 dotenv.config();
 const app= express();
+createTables();
 
 app.use(express.json());
 app.use(cors({
