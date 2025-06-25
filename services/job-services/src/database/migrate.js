@@ -1,4 +1,4 @@
-const pool= require('../config/db.js');
+const {pool}= require('../config/db.js');
 
 async function migrate(){
     await pool.query(`CREATE TABLE IF NOT EXISTS jobs (
@@ -14,6 +14,7 @@ async function migrate(){
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+    
     CREATE TABLE IF NOT EXISTS job_applications (
       id SERIAL PRIMARY KEY,
       job_id INTEGER REFERENCES jobs(id),
@@ -26,6 +27,5 @@ async function migrate(){
 
     console.log('Database migrated successfully');
 };
-
 
 module.exports= {migrate};

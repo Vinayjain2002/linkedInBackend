@@ -1,0 +1,14 @@
+services/analytics-service/
+  - index.js
+  - package.json
+  - src/
+      - app.js
+      - routes/
+          - analyticsRoutes.js
+          - reportRoutes.js
+          - dashboardRoutes.js
+      - middlewares/
+          - errorHandler.js
+          - rateLimiter.js
+
+          

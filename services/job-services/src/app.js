@@ -5,7 +5,6 @@ const helmet= require('helmet');
 const dotenv= require('dotenv');
 const jobRoutes= require('./routes/jobRoutes');
 const errorHandler= require('./middlewares/errorHandler.js');
-const {migrate}= require('./database/migrate.js');
 
 dotenv.config();
 
