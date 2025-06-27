@@ -10,9 +10,12 @@ const PORT= process.env.PORT || 3001;
 const gracefulShutdown= async ()=>{
     console.log('Shutting down gracefully...');
     try{
+        await pool.end();
         console.log("Postgree Pool disconnected");
         await redisClient.quit();
         console.log("Redis Client disconnected");
+        await closeConnection();
+        console.log("RabbitMQ Connection closed");
         process.exit(0);
     }catch(error){
         console.error('Error during shutdown:', error);

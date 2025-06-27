@@ -3,6 +3,8 @@ const jwt= require('jsonwebtoken');
 const UserModel= require('../models/userModel.js');
 const redisClient= require('../config/redis.js');
 const transporter= require('../config/mailer.js');
+const aesEncryption= require('../utils/aesEncryption.js');
+const UserEventService = require('./userEventService.js');
 
 const authService= {
     async registerUser(email, password, first_name, last_name, headline, location, industry, phone) {
@@ -10,9 +12,7 @@ const authService= {
         if(existingUser){
             throw new Error('User already exists');
         }
-
-        const saltRounds= 12;
-        const passwordHash= await bcrypt.hash(password, saltRounds);
+        const passwordHash= await aesEncryption.hashPassword(password);
         const user = await UserModel.createUser(email, passwordHash, first_name, last_name, headline, location, industry, phone);
         const token = jwt.sign(
             { id: user.id, email: user.email },
@@ -20,6 +20,11 @@ const authService= {
             { expiresIn: '24h' }
         );
         await redisClient.setEx(`user:${user.id}`, 3600, JSON.stringify(user));
+        await UserEventService.publishUserRegistration({
+            ...user,
+            ipAddress: req?.ip || req?.connection?.remoteAddress,
+            userAgent: req?.headers['user-agent']
+        });
         try{
             await transporter.sendMail({
                 from: process.env.EMAIL_USER,
@@ -48,10 +53,20 @@ const authService= {
         const user= await UserModel.findUserByEmail(email);
         if(!user || !user.is_active){
             throw new Error('Invalid credentials or account is not active');
-        }
-        const isPasswordValid= await bcrypt.compare(password, user.password_hash);
+        }   
+        const isPasswordValid= await aesEncryption.verifyPassword(password, user.password_hash);
         if(!isPasswordValid){
             await UserModel.recordFailedLogin(email);
+            await UserEventService.publishAdminAlert({
+                type: 'FAILED_LOGIN_ATTEMPT',
+                message: `Failed login attempt for user: ${email}`,
+                severity: 'WARNING',
+                userId: user.id,
+                userEmail: email,
+                ipAddress: req?.ip || req?.connection?.remoteAddress,
+                userAgent: req?.headers?.['user-agent']
+            });
+            
             throw new Error('Invalid password');
         }
         await UserModel.resetFailedLogin(email);
@@ -61,6 +76,11 @@ const authService= {
             { expiresIn: '24h' }
         );
         await redisClient.setEx(`user:${user.id}`, 3600, JSON.stringify(user));
+        await UserEventService.publishUserLogin({
+            ...user,
+            ipAddress: req?.ip || req?.connection?.remoteAddress,
+            userAgent: req?.headers?.['user-agent']
+        });
         return {user, token};
     },
 
@@ -104,17 +124,26 @@ const authService= {
         if(decoded.type !== 'password-reset'){
             throw new Error('Invalid or expired token');
         }
-        const tokenDecoded= await UserModel.findVerificationToken(token, 'password_reset');
+        const tokenRecord= await UserModel.findVerificationToken(token, 'password_reset');
         if (!tokenRecord) {
             throw new Error('Invalid or expired token');
         }
         const userId= tokenRecord.user_id;
-        
-        const saltRounds= 12;
-        const passwordHash= await bcrypt.hash(newPassword, saltRounds);
+        const passwordHash= await aesEncryption.hashPassword(newPassword);
         await UserModel.updatePassword(userId, passwordHash);
         await UserModel.deleteVerificationToken(token); // Delete used token
         await redisClient.del(`user:${userId}`);
+        
+        const user= await UserModel.findUserById(userId);
+        if(user){
+            await UserEventService.publishAdminAlert({
+                type: 'PASSWORD_RESET',
+                message: `Password reset completed for user: ${user.email}`,
+                severity: 'INFO',
+                userId: user.id,
+                userEmail: user.email
+            });
+        }
         return {message: 'Password reset successfully'};
     }
 }

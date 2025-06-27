@@ -9,6 +9,9 @@ const authController= {
                 return res.status(400).json({error: error.details[0].message});
             }
             const { email, password, first_name, last_name, headline, location, industry, phone } = value;
+            if(!email || !password ){
+                res.status(400).json({error: 'Email and password are required'});
+            }
             const { user, token } = await authService.registerUser(email, password, first_name, last_name, headline, location, industry, phone);
             
             res.status(201).json({
@@ -17,7 +20,11 @@ const authController= {
                     id: user.id,
                     email: user.email,
                     first_name: user.first_name,
-                    last_name: user.last_name
+                    last_name: user.last_name,
+                    headline: user.headline,
+                    location: user.location,
+                    industry: user.industry,
+                    phone: user.phone
                 },
                 token
             });

@@ -1,6 +1,7 @@
 
 const UserModel = require('../models/userModel');
 const redisClient = require('../config/redis');
+const UserEventService = require('./userEventService');
 
 const userService = {
     async getUserProfile(userId) {
@@ -36,6 +37,11 @@ const userService = {
         }
 
         const user = await UserModel.updateProfile(userId, updateFields, updateValues);
+        await UserEventService.publishUserProfileUpdate({
+            id: userId,
+            email: user.email,
+            updatedFields: Object.keys(updateData)
+        });
         if (!user) {
             throw new Error('User not found');
         }
@@ -54,6 +60,12 @@ const userService = {
 
     async deleteUserAccount(userId) {
         await UserModel.softDeleteAccount(userId);
+        await UserEventService.publishAdminAlert({
+            type: 'USER_DEACTIVATION',
+                message: `User account deactivated: ${user.email}`,
+                severity: 'WARNING',
+                userId: userId
+        });
         await redisClient.del(`user:${userId}`); // Clear cache
     },
 
