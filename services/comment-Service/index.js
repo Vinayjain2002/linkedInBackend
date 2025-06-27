@@ -3,6 +3,7 @@ const { connectRabbitMQ } = require('../post-service/src/config/rabbitmq.js');
 const { connectRedis } = require('../post-service/src/config/redis.js');
 const app= require('./src/app.js');
 const PORT= process.env.PORT || 3010;
+const migrate= require('./src/database/migrate.js');
 
 
 // Graceful Shutdown

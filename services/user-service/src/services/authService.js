@@ -3,7 +3,7 @@ const jwt= require('jsonwebtoken');
 const UserModel= require('../models/userModel.js');
 const redisClient= require('../config/redis.js');
 const transporter= require('../config/mailer.js');
-const aesEncryption= require('../utils/aesEncryption.js');
+const aesEncryption= require('../utils/aesEncrytption.js');
 const UserEventService = require('./userEventService.js');
 
 const authService= {

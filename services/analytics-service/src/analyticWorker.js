@@ -160,3 +160,4 @@ async function processAggregationTask(task) {
 }
 
 module.exports = { startAnalyticsWorker };
+
