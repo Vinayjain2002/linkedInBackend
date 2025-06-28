@@ -1,11 +1,13 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+import { Pool } from 'pg';
+import doetenv from 'dotenv'
+
+doetenv.config();
 
 const pool = new Pool({
   connectionString: process.env.POSTGRES_URI,
 });
 
-const createTables = async () => {
+export const createTables = async () => {
   try {
     // Posts table
     await pool.query(`
@@ -103,5 +105,3 @@ const createTables = async () => {
     await pool.end();
   }
 };
-
-module.exports= {createTables};

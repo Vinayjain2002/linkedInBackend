@@ -1,9 +1,10 @@
-const pool= require('../config/db.js');
-const redisClient= require('../config/redis.js');
-const {getChannel} = require('../config/rabbitmq.js');
-const {postSchema, commentSchema} = require('../validations/schema.js');
+import {pool} from '../config/db.js';
+import {client} from '../config/redis.js';
+import {getChannel} from '../config/rabbitmq.js';
+import {postSchema, commentSchema} from '../validations/schema.js';
+const redisClient= client;
 
-const createPost= async(req, res)=>{
+export const createPost= async(req, res)=>{
     try{
         const {error, value}= postSchema.validate(req.body);
         if(error){
@@ -27,9 +28,9 @@ const createPost= async(req, res)=>{
             })));
         }
         // Deleting the Global Feed Cache as new post is created
-        const keys = await redisClient.keys('feed:global:*');
+        const keys = await client.keys('feed:global:*');
         if(keys.length > 0) {
-            await redisClient.del(...keys);
+            await client.del(...keys);
         }
         
         return res.status(201).json({ 
@@ -42,7 +43,7 @@ const createPost= async(req, res)=>{
     }
 }
 
-const getPosts= async(req,res)=>{
+export const getPosts= async(req,res)=>{
     try{
         const {page=1, limit=10, user_id}= req.query;
         const offset= (page-1)*limit;
@@ -84,7 +85,7 @@ const getPosts= async(req,res)=>{
     }
 }
 
-const getPostById= async(req,res)=>{
+export const getPostById= async(req,res)=>{
     try{
         const postId= req.params.id;
         const result = await pool.query(
@@ -111,7 +112,7 @@ const getPostById= async(req,res)=>{
     }
 }
 
-const toggleLikePost= async(req,res)=>{
+export const toggleLikePost= async(req,res)=>{
     try{
         const postId= req.params.id;
         const existingLike = await pool.query(
@@ -127,16 +128,16 @@ const toggleLikePost= async(req,res)=>{
             await pool.query('INSERT INTO post_likes (post_id, user_id) VALUES ($1, $2)', [postId, req.user.id]);
             await pool.query('UPDATE posts SET likes_count = likes_count + 1 WHERE id = $1', [postId]);
             const channel = getChannel();
-            if (channel) {
-              channel.sendToQueue('post_liked', Buffer.from(JSON.stringify({
-                post_id: postId,
-                liked_by_user_id: req.user.id
-              })));
-            }
+            // if (channel) {
+            //   channel.sendToQueue('post_liked', Buffer.from(JSON.stringify({
+            //     post_id: postId,
+            //     liked_by_user_id: req.user.id
+            //   })));
+            // }
       
             res.json({ message: 'Post liked', liked: true });      
         }
-        await redisClient.del(`post:${postId}`);
+        // await redisClient.del(`post:${postId}`);
     }
     catch(err){
         console.error('Error liking post:', err);
@@ -144,13 +145,13 @@ const toggleLikePost= async(req,res)=>{
     }
 }
 
-const commentOnPost = async (req, res) => {
+export const commentOnPost = async (req, res) => {
     try {
       const postId = req.params.id;
       const { error, value } = commentSchema.validate(req.body);
       if (error) return res.status(400).json({ error: error.details[0].message });
   
-      const { content, parent_comment_id } = value;
+      const { content, parent_comment_id = null } = value;
       const result = await pool.query(
         `INSERT INTO post_comments (post_id, user_id, parent_comment_id, content)
          VALUES ($1, $2, $3, $4) RETURNING *`,
@@ -160,15 +161,15 @@ const commentOnPost = async (req, res) => {
       const comment = result.rows[0];
       await pool.query('UPDATE posts SET comments_count = comments_count + 1 WHERE id = $1', [postId]);
   
-      const channel = getChannel();
-      if (channel) {
-        channel.sendToQueue('post_commented', Buffer.from(JSON.stringify({
-          post_id: postId,
-          comment_id: comment.id,
-          commented_by_user_id: req.user.id,
-          content: comment.content
-        })));
-      }
+      // const channel = getChannel();
+      // if (channel) {
+      //   channel.sendToQueue('post_commented', Buffer.from(JSON.stringify({
+      //     post_id: postId,
+      //     comment_id: comment.id,
+      //     commented_by_user_id: req.user.id,
+      //     content: comment.content
+      //   })));
+      // }
   
       res.status(201).json({ message: 'Comment added successfully', comment });
     } catch (error) {
@@ -177,7 +178,7 @@ const commentOnPost = async (req, res) => {
     }
   };
   
-  const getPostComments = async (req, res) => {
+  export const getPostComments = async (req, res) => {
     try {
       const postId = req.params.id;
       const { page = 1, limit = 20 } = req.query;
@@ -200,7 +201,7 @@ const commentOnPost = async (req, res) => {
     }
   };
   
-  const sharePost = async (req, res) => {
+  export const sharePost = async (req, res) => {
     try {
       const postId = req.params.id;
       const { share_content } = req.body;
@@ -218,29 +219,19 @@ const commentOnPost = async (req, res) => {
       );
       await pool.query('UPDATE posts SET shares_count = shares_count + 1 WHERE id = $1', [postId]);
   
-      const channel = getChannel();
-      if (channel) {
-        channel.sendToQueue('post_shared', Buffer.from(JSON.stringify({
-          original_post_id: postId,
-          shared_post_id: sharedPost.id,
-          shared_by_user_id: req.user.id
-        })));
-      }
+      // const channel = getChannel();
+      // if (channel) {
+      //   channel.sendToQueue('post_shared', Buffer.from(JSON.stringify({
+      //     original_post_id: postId,
+      //     shared_post_id: sharedPost.id,
+      //     shared_by_user_id: req.user.id
+      //   })));
+      // }
   
       res.status(201).json({ message: 'Post shared successfully', shared_post: sharedPost });
     } catch (error) {
       console.error('Share post error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
-  };
-  
-  module.exports = {
-    createPost,
-    getPosts,
-    getPostById,
-    toggleLikePost,
-    commentOnPost,
-    getPostComments,
-    sharePost
   };
   

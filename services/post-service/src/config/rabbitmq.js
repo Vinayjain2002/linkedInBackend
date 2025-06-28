@@ -1,10 +1,10 @@
-const amqp= require('amqplib');
-const dotenv= require('dotenv');
+import amqp from 'amqplib';
+import dotenv from 'dotenv';
 dotenv.config();
 
 let channel;
 
-const connectRabbitMQ= async()=>{
+export const connectRabbitMQ= async()=>{
     try{
         const connection= await amqp.connect(process.env.RABBITMQ_URL);
         channel= await connection.createChannel();
@@ -16,4 +16,6 @@ const connectRabbitMQ= async()=>{
     }
 };
 
-module.exports= {connectRabbitMQ};
+export const getChannel= async()=>{
+    return channel;
+};

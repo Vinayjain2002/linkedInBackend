@@ -1,8 +1,8 @@
-const app= require('./src/app.js');
-const {pool, connectDatabase}= require('./src/config/db.js');
-const {connectRabbitMQ}= require('./src/config/rabbitmq.js');
-const {connectRedis}= require('./src/config/redis.js');
-const PORT= process.env.PORT || 3002;
+import app from './src/app.js';
+import {pool, connectDatabase} from './src/config/db.js';
+import {connectRabbitMQ} from'./src/config/rabbitmq.js';
+import {connectRedis} from'./src/config/redis.js';
+const  PORT= process.env.PORT || 3002;
 
 
 const startServer= async()=>{

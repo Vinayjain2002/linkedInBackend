@@ -1,8 +1,8 @@
-const { Pool } = require('pg');
-const dotenv= require('dotenv');
+import { Pool } from 'pg';
+import dotenv from 'dotenv';
 dotenv.config();
 
-const pool= new Pool({
+export const pool= new Pool({
     connectionString: process.env.POSTGRES_URI
 });
 
@@ -29,7 +29,7 @@ async function testDBConnection(){
 
 testDBConnection();
 
-const connectDatabase= async()=>{
+export const connectDatabase= async()=>{
     try{
         await pool.connect();
         console.log('Connected to the database');
@@ -40,4 +40,3 @@ const connectDatabase= async()=>{
     }
 }
 
-module.exports= {pool, connectDatabase};
