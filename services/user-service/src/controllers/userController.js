@@ -1,5 +1,5 @@
 const userService= require('../services/userService.js');
-const {profileUpdateSchema}= require('../utils/validationSchemas.js');
+const {profileUpdateSchema}= require('../utils/validationSchema.js');
 
 const userController= {
     async getProfile(req,res,next){
@@ -65,8 +65,8 @@ const userController= {
 
     async searchUsers(req, res, next) {
         try {
-            const { q, page = 1, limit = 10 } = req.query;
-            const searchResult = await userService.searchUsers(q, page, limit);
+            const { query, page = 1, limit = 10 } = req.query;
+            const searchResult = await userService.searchUsers(query, page, limit);
             res.json(searchResult);
         } catch (error) {
             if (error.message.includes('Search query is required')) {

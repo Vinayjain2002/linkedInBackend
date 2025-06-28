@@ -60,12 +60,12 @@ const userService = {
 
     async deleteUserAccount(userId) {
         await UserModel.softDeleteAccount(userId);
-        await UserEventService.publishAdminAlert({
-            type: 'USER_DEACTIVATION',
-                message: `User account deactivated: ${user.email}`,
-                severity: 'WARNING',
-                userId: userId
-        });
+        // await UserEventService.publishAdminAlert({
+        //     type: 'USER_DEACTIVATION',
+        //         message: `User account deactivated: ${user.email}`,
+        //         severity: 'WARNING',
+        //         userId: userId
+        // });
         await redisClient.del(`user:${userId}`); // Clear cache
     },
 

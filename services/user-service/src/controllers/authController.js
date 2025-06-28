@@ -1,6 +1,6 @@
+const userModel = require('../models/userModel.js');
 const authService= require('../services/authService.js');
 const { userRegistrationSchema, userLoginSchema } = require('../utils/validationSchema.js');
-
 const authController= {
     async register(req,res,next){
         try{
@@ -8,10 +8,11 @@ const authController= {
             if(error){
                 return res.status(400).json({error: error.details[0].message});
             }
-            const { email, password, first_name, last_name, headline, location, industry, phone } = value;
+            const {email, password, first_name, last_name, headline, location, industry, phone } = value;
             if(!email || !password ){
                 res.status(400).json({error: 'Email and password are required'});
             }
+            
             const { user, token } = await authService.registerUser(email, password, first_name, last_name, headline, location, industry, phone);
             
             res.status(201).json({
@@ -79,6 +80,7 @@ const authController= {
 
     async logout(req,res,next){
         try{
+            console.log(req.user);
             await authService.logoutUser(req.user.id);
             res.status(200).json({message: 'Logged out successfully'});
         }

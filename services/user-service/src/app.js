@@ -10,7 +10,7 @@ const errorHandler= require('./middleware/errorHandler.js');
 
 const app= express();
 
-//Middlewares
+
 app.use(cors());
 app.use(helmet());
 app.use(morgan('combined'));

@@ -4,11 +4,11 @@ const dotenv= require('dotenv');
 const helmet= require('helmet');
 const morgan= require('morgan');
 const {createTables}= require('./database/migrate.js');
-
-dotenv.config();
-
 const postRoutes= require('./routes/postRoutes.js');
 const errorHandler= require('./middlewares/errorHandler.js');
+
+dotenv.config();
+await createTables();
 
 const app= express();
 

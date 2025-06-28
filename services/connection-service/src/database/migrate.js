@@ -93,7 +93,6 @@ const createTables = async () => {
     console.error('Error creating tables:', error);
     throw error;
   } finally {
-    await pool.end();
   }
 };
 

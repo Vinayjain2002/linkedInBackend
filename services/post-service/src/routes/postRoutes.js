@@ -3,7 +3,7 @@ const router= express.Router();
 const auth= require('../middlewares/auth.js');
 const postController= require('../controllers/postController.js');
 
-router.get('/health', (_,res)=> res.json({status: 'ok'}));
+// router.get('/health', (_,res)=> res.json({status: 'ok'}));
 router.post('/create', auth, postController.createPost);
 router.get('/sget/:id', auth, postController.getPostById);
 router.put('/toggle/:id', auth, postController.toggleLikePost);

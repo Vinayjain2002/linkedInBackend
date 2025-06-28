@@ -20,11 +20,11 @@ const authService= {
             { expiresIn: '24h' }
         );
         await redisClient.setEx(`user:${user.id}`, 3600, JSON.stringify(user));
-        await UserEventService.publishUserRegistration({
-            ...user,
-            ipAddress: req?.ip || req?.connection?.remoteAddress,
-            userAgent: req?.headers['user-agent']
-        });
+        // await UserEventService.publishUserRegistration({
+        //     ...user,
+        //     ipAddress: req?.ip || req?.connection?.remoteAddress,
+        //     userAgent: req?.headers['user-agent']
+        // });
         try{
             await transporter.sendMail({
                 from: process.env.EMAIL_USER,
@@ -57,15 +57,15 @@ const authService= {
         const isPasswordValid= await aesEncryption.verifyPassword(password, user.password_hash);
         if(!isPasswordValid){
             await UserModel.recordFailedLogin(email);
-            await UserEventService.publishAdminAlert({
-                type: 'FAILED_LOGIN_ATTEMPT',
-                message: `Failed login attempt for user: ${email}`,
-                severity: 'WARNING',
-                userId: user.id,
-                userEmail: email,
-                ipAddress: req?.ip || req?.connection?.remoteAddress,
-                userAgent: req?.headers?.['user-agent']
-            });
+            // await UserEventService.publishAdminAlert({
+            //     type: 'FAILED_LOGIN_ATTEMPT',
+            //     message: `Failed login attempt for user: ${email}`,
+            //     severity: 'WARNING',
+            //     userId: user.id,
+            //     userEmail: email,
+            //     ipAddress: req?.ip || req?.connection?.remoteAddress,
+            //     userAgent: req?.headers?.['user-agent']
+            // });
             
             throw new Error('Invalid password');
         }
@@ -76,17 +76,19 @@ const authService= {
             { expiresIn: '24h' }
         );
         await redisClient.setEx(`user:${user.id}`, 3600, JSON.stringify(user));
-        await UserEventService.publishUserLogin({
-            ...user,
-            ipAddress: req?.ip || req?.connection?.remoteAddress,
-            userAgent: req?.headers?.['user-agent']
-        });
+        // await UserEventService.publishUserLogin({
+        //     ...user,
+        //     ipAddress: req?.ip || req?.connection?.remoteAddress,
+        //     userAgent: req?.headers?.['user-agent']
+        // });
         return {user, token};
     },
 
     async requestPasswordReset(email){
+        console.log("Requesting Password Reset");
         const user= await UserModel.findUserByEmail(email);
-        if(!user ||!user.email_verified || !user.is_verified){
+        console.log(user);
+        if(!user ){
             throw new Error('User not found or not verified');
         }
         const resetToken= jwt.sign(
@@ -94,8 +96,12 @@ const authService= {
             process.env.JWT_SECRET,
             { expiresIn: '1h' }
         );
+        console.log(resetToken);
         const expiresAt= new Date(Date.now() + 3600000);
+        await UserModel.deleteVerificationTokenByUserId(user.id);
         await UserModel.storeVerificationToken(user.id, resetToken, 'password-reset', expiresAt);
+        console.log("Verification Token Stored");
+        console.log(resetToken);
         try{
             const resetLink= `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
             await transporter.sendMail({
@@ -111,6 +117,8 @@ const authService= {
                     <p>If you didn't request this, please ignore this email.</p>
                 `
             });
+
+            console.log("Password Reset Email Sent");
         }
         catch(err){
             console.error('Error sending password reset email:', err);
@@ -124,7 +132,13 @@ const authService= {
         if(decoded.type !== 'password-reset'){
             throw new Error('Invalid or expired token');
         }
+        console.log("Decoded Token");
+        console.log(decoded);
+        console.log(token);
+        console.log(newPassword);
         const tokenRecord= await UserModel.findVerificationToken(token, 'password_reset');
+        console.log("Token Record");
+        console.log(tokenRecord);
         if (!tokenRecord) {
             throw new Error('Invalid or expired token');
         }

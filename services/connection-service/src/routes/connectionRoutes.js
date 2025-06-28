@@ -11,4 +11,3 @@ router.get('/', auth, connectionController.listConnections);
 router.get('/pending', auth, connectionController.listPending);
 
 module.exports = router;
-

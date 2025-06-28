@@ -1,6 +1,7 @@
-const pool= require('../config/database.js');
+const {pool}= require('../config/database.js');
 
 const userModel= {
+    
     async createUser(email, passwordHash, first_name, last_name, headline, location, industry, phone) {
         const result = await pool.query(
             `INSERT INTO users (email, password_hash, first_name, last_name, headline, location, industry, phone)
@@ -64,14 +65,18 @@ const userModel= {
 
     async findVerificationToken(token, type) {
         const result = await pool.query(
-            'SELECT user_id FROM verification_tokens WHERE token = $1 AND type = $2 AND expires_at > NOW()',
-            [token, type]
+            'SELECT user_id FROM verification_tokens WHERE token = $1',
+            [token]
         );
         return result.rows[0];
     },
 
     async deleteVerificationToken(token) {
         await pool.query('DELETE FROM verification_tokens WHERE token = $1', [token]);
+    },
+
+    async deleteVerificationTokenByUserId(userId) {
+        await pool.query('DELETE FROM verification_tokens WHERE user_id = $1', [userId]);
     },
 
     async updatePassword(userId, passwordHash) {
@@ -100,7 +105,7 @@ const userModel= {
         let isBlocked = false;
         if (attempts >= 5) isBlocked = true;
         await pool.query(
-            'UPDATE users SET failed_login_attempts = $1, is_blocked = $2, last_failed_login = NOW() WHERE email = $3',
+            'UPDATE users SET failed_login_attempts = $1, is_locked = $2, last_failed_login = NOW() WHERE email = $3',
             [attempts, isBlocked, email]
         );
     },
@@ -109,13 +114,17 @@ const userModel= {
             return;
         }
         await pool.query(
-            'UPDATE users SET failed_login_attempts = 0, is_blocked = false WHERE email = $1',
+            'UPDATE users SET failed_login_attempts = 0, is_locked = false WHERE email = $1',
             [email]
         );
     },
     async isUserBlocked(email) {
-        const result = await pool.query('SELECT is_blocked FROM users WHERE email = $1', [email]);
-        return result.rows[0]?.is_blocked;
+        const result = await pool.query('SELECT is_locked FROM users WHERE email = $1', [email]);
+        return result.rows[0]?.is_locked;
+    },
+    async getLastFailedLogin(email) {
+        const result = await pool.query('SELECT last_failed_login FROM users WHERE email = $1', [email]);
+        return result.rows[0]?.last_failed_login;
     }
 }
 
